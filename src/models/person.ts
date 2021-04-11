@@ -1,7 +1,8 @@
 import { DefaultBody } from "node-server";
 
-export interface Person extends DefaultBody {
+export interface Person {
     id: number;
+    groupId: number;
     firstName: string;
     lastName: string;
     phoneNumber: string;
