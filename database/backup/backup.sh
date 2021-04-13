@@ -1,0 +1,1 @@
+pg_dump.exe messaging > $(date --iso).sql
