@@ -73,7 +73,7 @@ export class GroupsController extends Controller {
             return newGroup;
         });
         
-        this.server.addRequest(RequestType.DELETE, "removeGroup", async (args, body) => {
+        this.server.addRequest(RequestType.DELETE, "deleteGroup", async (args, body) => {
             if (!+args[0])
             {
                 throw {

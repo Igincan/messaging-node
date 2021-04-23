@@ -86,7 +86,7 @@ export class PeopleController extends Controller {
             return newPerson;
         });
         
-        this.server.addRequest(RequestType.DELETE, "removePerson", async (args, body) => {
+        this.server.addRequest(RequestType.DELETE, "deletePerson", async (args, body) => {
             if (!+args[0])
             {
                 throw {
