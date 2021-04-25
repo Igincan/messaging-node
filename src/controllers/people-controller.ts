@@ -15,7 +15,7 @@ export class PeopleController extends Controller {
     init(): void {
         
         this.server.addRequest(RequestType.GET, "allPeople", async (args, body) => {
-            return (await this.dbClient.query<Person>(`SELECT * FROM "Person"`)).rows;
+            return (await this.dbClient.query<Person>(`SELECT * FROM "Person" ORDER BY "id" ASC`)).rows;
         });
         
         this.server.addRequest(RequestType.GET, "person", async (args, body) => {
