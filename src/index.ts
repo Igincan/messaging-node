@@ -28,5 +28,3 @@ import { PeopleController } from "./controllers/people-controller";
     
     server.launchServer();
 })();
-
-
