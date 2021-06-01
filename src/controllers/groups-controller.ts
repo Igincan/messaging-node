@@ -1,97 +1,96 @@
-import * as fs from "fs";
-
-import { RequestType, Server, ErrorResponse, MessageResponse } from "node-server";
+import { Router } from "express";
 import { Client } from "pg";
+import { json } from "body-parser";
 
 import { Controller } from "./controller";
 import { Group } from "../models/group";
 
 export class GroupsController extends Controller {
     
-    constructor(server: Server, private dbClient: Client) {
-        super(server);
+    constructor(router: Router, private dbClient: Client) {
+        super(router);
     }
 
     init(): void {
         
-        this.server.addRequest(RequestType.GET, "allGroups", async (args, body) => {
-            return (await this.dbClient.query<Group>(`SELECT * FROM "Group"`)).rows;
+        this.router.get("/allGroups", async (req, res) => {
+            const groups = (await this.dbClient.query<Group>("SELECT * FROM \"Group\"")).rows;
+            res.json(groups);
         });
         
-        this.server.addRequest(RequestType.GET, "group", async (args, body) => {
+        this.router.get("/group/:id", async (req, res) => {
             let group: Group;
-            if (!+args[0]) {
-                throw {
-                    message: `Invalid argument!`,
-                    code: 404
-                } as ErrorResponse;
+            if (!+req.params.id) {
+                return res.status(404).json({
+                    message: "Invalid argument!"
+                });
             }
             try {
-                group = (await this.dbClient.query<Group>(`SELECT * FROM "Group" WHERE ID = ${args[0]}`)).rows[0];
+                group = (await this.dbClient.query<Group>(`SELECT * FROM "Group" WHERE "id" = ${req.params.id}`)).rows[0];
             } catch (error) {
                 this.logError(JSON.stringify(error));
-                throw {
-                    message: "Something went wrong!",
-                    code: 500
-                } as ErrorResponse;
+                return res.status(500).json({
+                    message: "Internal server error!"
+                });
             }
             if (!group) {
-                throw {
-                    message: `Group with id [${args[0]}] not found!`,
-                    code: 404
-                } as ErrorResponse;
+                return res.status(404).json({
+                    message: `Group with id [${req.params.id}] not found!`
+                });
             }
-            return group;
+            res.json(group);
         });
         
-        this.server.addRequest(RequestType.POST, "addGroup", async (args, body) => {
-            let group = body as Group;
+        this.router.post("/addGroup", json(), async (req, res) => {
+            let group = req.body as Group;
+
             try {
-                let id = (await this.dbClient.query(`INSERT INTO "Group" ("name") VALUES ('${group.name}') RETURNING ID`)).rows[0].id;
-                group = (await this.dbClient.query<Group>(`SELECT * FROM "Group" WHERE ID = ${id}`)).rows[0];
+                const id = (await this.dbClient.query<{ id: number; }>(`INSERT INTO "Group" ("name") VALUES ('${group.name}') RETURNING "id"`)).rows[0].id;
+                group = (await this.dbClient.query<Group>(`SELECT * FROM "Group" WHERE "id" = ${id}`)).rows[0];
             } catch (error) {
                 this.logError(JSON.stringify(error));
-                throw {
-                    message: "Something went wrong!",
-                    code: 500
-                } as ErrorResponse;
+                return res.status(500).json({
+                    message: "Internal server error!"
+                });
             }
-            return group;
+            res.json(group);
         });
 
-        this.server.addRequest(RequestType.PUT, "editGroup", async (args, body) => {
-            let newGroup = body as Group;
+        this.router.put("/editGroup", json(), async (req, res) => {
+            let newGroup = req.body as Group;
+
             try {
-                newGroup = (await this.dbClient.query(`UPDATE "Group" SET "name" = '${newGroup.name}' WHERE ID = ${newGroup.id} RETURNING *`)).rows[0];
+                newGroup = (await this.dbClient.query<Group>(`
+                    UPDATE "Group" SET "name" = '${newGroup.name}'
+                    WHERE "id" = ${newGroup.id}
+                    RETURNING *
+                `)).rows[0];
             } catch (error) {
                 this.logError(JSON.stringify(error));
-                throw {
-                    message: "Something went wrong!",
-                    code: 500
-                } as ErrorResponse;
+                return res.status(500).json({
+                    message: "Internal server error!"
+                });
             }
-            return newGroup;
+            res.json(newGroup);
         });
         
-        this.server.addRequest(RequestType.DELETE, "deleteGroup", async (args, body) => {
-            if (!+args[0])
+        this.router.delete("/deleteGroup/:id", async (req, res) => {
+            if (!+req.params.id)
             {
-                throw {
-                    message: `Invalid argument!`,
-                    code: 404
-                } as ErrorResponse;
+                return res.status(404).json({
+                    message: "Invalid argument!"
+                });
             }
             try {
-                await this.dbClient.query(`DELETE FROM "Group" WHERE ID = ${args[0]}`);
+                await this.dbClient.query(`DELETE FROM "Group" WHERE ID = ${req.params.id}`);
             } catch (error) {
                 this.logError(JSON.stringify(error));
-                throw {
-                    message: "Something went wrong!",
-                    code: 500
-                } as ErrorResponse;
+                return res.status(500).json({
+                    message: "Internal server error!"
+                });
             }
 
-            return { message: "OK" } as MessageResponse;
+            res.json({ message: "OK" });
         });
     }
 }
