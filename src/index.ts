@@ -6,6 +6,7 @@ import { Controller } from "./controllers/controller";
 import { GroupsController } from "./controllers/groups-controller";
 import { PeopleController } from "./controllers/people-controller";
 import { PageController } from "./controllers/page-controller";
+import { UserController } from "./controllers/user-controller";
 
 (async () => {
     const port = 5500;
@@ -32,7 +33,8 @@ import { PageController } from "./controllers/page-controller";
     const controllers: Controller[] = [
         new PeopleController(apiRouter, dbClient),
         new GroupsController(apiRouter, dbClient),
-        new PageController(defaultRouter)
+        new PageController(defaultRouter),
+        new UserController(apiRouter)
     ];
     
     controllers.forEach((controller) => {
