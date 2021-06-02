@@ -1,8 +1,11 @@
+import * as bcrypt from "bcrypt";
 import { Router } from "express";
 import { json } from "body-parser";
+import { Client } from "pg";
 
 import { Controller } from "./controller";
 import { Credentials } from "../models/credentials";
+import { User } from "../models/user";
 
 declare module "express-session" {
     interface SessionData {
@@ -13,19 +16,44 @@ declare module "express-session" {
 
 export class UserController extends Controller {
     
-    constructor(router: Router) {
+    constructor(router: Router, private _dbClient: Client) {
         super(router);
     }
 
     init(): void {
         
-        this.router.post("/login", json(), (req, res) => {
+        this.router.post("/login", json(), async (req, res) => {
             const credentials = req.body as Credentials;
 
             if (req.session.userIsLogged) {
                 res.json({ message: "User already logged in!" });
             } else {
-                if (credentials.username === "admin" && credentials.password === "test123") {
+                let user: User;
+                try {
+                    user = (await this._dbClient.query<User>(`
+                        SELECT * FROM "User" WHERE "name" = '${credentials.username}'
+                    `)).rows[0];
+                } catch (error) {
+                    this.logError(JSON.stringify(error));
+                    return res.status(500).json({
+                        message: "Internal server error!"
+                    });
+                }
+                if (!user) {
+                    return res.status(404).json({
+                        message: "Invalid username or password!"
+                    });
+                }
+                let correct: boolean;
+                try {
+                    correct = await bcrypt.compare(credentials.password, user.hash);
+                } catch (error) {
+                    this.logError(JSON.stringify(error));
+                    return res.status(500).json({
+                        message: "Internal server error!"
+                    });
+                }
+                if (correct) {
                     req.session.userIsLogged = true;
                     req.session.username = credentials.username;
                     res.json({ message: `User ${credentials.username} successfully logged in!` });

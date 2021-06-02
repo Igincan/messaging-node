@@ -16,7 +16,7 @@ import { UserController } from "./controllers/user-controller";
     const defaultRouter = express.Router();
 
     app.use(express.static("dist/web"));
-    app.use(session({ secret: "test123" }));
+    app.use(session({ secret: "Wbh8n31btkkQBndpOEQ5" }));
     app.use("/api", apiRouter);
     app.use(defaultRouter);
 
@@ -34,7 +34,7 @@ import { UserController } from "./controllers/user-controller";
         new PeopleController(apiRouter, dbClient),
         new GroupsController(apiRouter, dbClient),
         new PageController(defaultRouter),
-        new UserController(apiRouter)
+        new UserController(apiRouter, dbClient)
     ];
     
     controllers.forEach((controller) => {
