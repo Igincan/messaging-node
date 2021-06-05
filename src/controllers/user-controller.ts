@@ -26,7 +26,7 @@ export class UserController extends Controller {
             const credentials = req.body as Credentials;
 
             if (req.session.userIsLogged) {
-                res.json({ message: "User already logged in!" });
+                res.status(400).send("User already logged in!");
             } else {
                 let user: User;
                 try {
@@ -35,30 +35,24 @@ export class UserController extends Controller {
                     `)).rows[0];
                 } catch (error) {
                     this.logError(JSON.stringify(error));
-                    return res.status(500).json({
-                        message: "Internal server error!"
-                    });
+                    return res.sendStatus(500);
                 }
                 if (!user) {
-                    return res.status(404).json({
-                        message: "Invalid username or password!"
-                    });
+                    return res.status(401).send("Invalid username or password!");
                 }
                 let correct: boolean;
                 try {
                     correct = await bcrypt.compare(credentials.password, user.hash);
                 } catch (error) {
                     this.logError(JSON.stringify(error));
-                    return res.status(500).json({
-                        message: "Internal server error!"
-                    });
+                    return res.sendStatus(500);
                 }
                 if (correct) {
                     req.session.userIsLogged = true;
                     req.session.username = credentials.username;
-                    res.json({ message: `User ${credentials.username} successfully logged in!` });
+                    res.send(`User ${credentials.username} successfully logged in!`);
                 } else {
-                    res.status(401).json({ message: "Invalid username or password!"});
+                    res.status(401).send("Invalid username or password!");
                 }
             }
         });
@@ -76,23 +70,16 @@ export class UserController extends Controller {
                     username: req.session.username
                 });
             } else {
-                res.status(401).json({
-                    message: "User is not logged in!"
-                });
+                res.status(401).send("User is not logged in!");
             }
         });
 
         this.router.get("/logout", (req, res) => {
             if (req.session.userIsLogged) {
-                req.session.username = undefined;
                 req.session.userIsLogged = false;
-                res.json({
-                    message: "Successfully logged out!"
-                });
+                res.send("Successfully logged out!");
             } else {
-                res.status(401).json({
-                    message: "User is not logged in!"
-                });
+                res.status(401).send("User is not logged in!");
             }
         });
     }
