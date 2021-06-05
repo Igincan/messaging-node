@@ -26,7 +26,7 @@ export class UserController extends Controller {
             const credentials = req.body as Credentials;
 
             if (req.session.userIsLogged) {
-                res.status(400).send("User already logged in!");
+                res.status(400).json("User already logged in!");
             } else {
                 let user: User;
                 try {
@@ -38,7 +38,7 @@ export class UserController extends Controller {
                     return res.sendStatus(500);
                 }
                 if (!user) {
-                    return res.status(401).send("Invalid username or password!");
+                    return res.status(401).json("Invalid username or password!");
                 }
                 let correct: boolean;
                 try {
@@ -50,9 +50,9 @@ export class UserController extends Controller {
                 if (correct) {
                     req.session.userIsLogged = true;
                     req.session.username = credentials.username;
-                    res.send(`User ${credentials.username} successfully logged in!`);
+                    res.json(`User ${credentials.username} successfully logged in!`);
                 } else {
-                    res.status(401).send("Invalid username or password!");
+                    res.status(401).json("Invalid username or password!");
                 }
             }
         });
@@ -70,17 +70,25 @@ export class UserController extends Controller {
                     username: req.session.username
                 });
             } else {
-                res.status(401).send("User is not logged in!");
+                res.status(401).json("User is not logged in!");
             }
         });
 
         this.router.get("/logout", (req, res) => {
             if (req.session.userIsLogged) {
                 req.session.userIsLogged = false;
-                res.send("Successfully logged out!");
+                res.json("Successfully logged out!");
             } else {
-                res.status(401).send("User is not logged in!");
+                res.status(401).json("User is not logged in!");
             }
         });
+
+        // this.router.get("/userData", (req, res) => {
+        //     if (req.session.userIsLogged) {
+
+        //     } else {
+        //         res.sendStatus(401);
+        //     }
+        // });
     }
 }
