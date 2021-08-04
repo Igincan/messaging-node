@@ -66,9 +66,7 @@ export class UserController extends Controller {
 
         this.router.get("/logged", (req, res) => {
             if (req.session.userIsLogged) {
-                res.json({
-                    username: req.session.username
-                });
+                res.json(req.session.username);
             } else {
                 res.status(401).json("User is not logged in!");
             }

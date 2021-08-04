@@ -5,7 +5,7 @@
     "tasks": [{
         "label": "typescript - build",
         "type": "shell",
-        "command": "tsc",
+        "command": "npm run build",
         "problemMatcher": "$tsc",
         "group": {
             "kind": "build",
