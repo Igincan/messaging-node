@@ -1,3 +1,4 @@
+import "dotenv/config";
 import * as express from "express";
 import * as session from "express-session";
 import { Client } from "pg";
@@ -8,8 +9,10 @@ import { PeopleController } from "./controllers/people-controller";
 import { PageController } from "./controllers/page-controller";
 import { UserController } from "./controllers/user-controller";
 
+import { logError } from "./functions/errors";
+
 (async () => {
-    const port = 5500;
+    const port = process.env.PORT;
 
     const app = express();
     const apiRouter = express.Router();
@@ -21,14 +24,18 @@ import { UserController } from "./controllers/user-controller";
     app.use(defaultRouter);
 
     const dbClient: Client = new Client({
-        user: "postgres",
-        host: "localhost",
-        database: "messaging",
-        password: "naruto1414",
-        port: 5432
+        user: process.env.DB_USER,
+        host: process.env.DB_HOST,
+        database: process.env.DB_DATABASE,
+        password: process.env.DB_PASSWORD,
+        port: process.env.DB_PORT ? +process.env.DB_PORT : 5432
     });
     
-    await dbClient.connect();
+    try {
+        await dbClient.connect();
+    } catch (e) {
+        logError(e as string | object);
+    } 
 
     const controllers: Controller[] = [
         new PeopleController(apiRouter, dbClient),

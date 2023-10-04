@@ -1,5 +1,7 @@
 node_modules/
 web/*
 dist/
+.vscode/
 
 log.txt
+.env
