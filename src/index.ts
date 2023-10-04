@@ -18,8 +18,12 @@ import { logError } from "./functions/errors";
     const apiRouter = express.Router();
     const defaultRouter = express.Router();
 
+    if (!process.env.SESSION_SECRET) {
+        throw new Error("Missing SESSION_SECRET in enviroment variables!");
+    }
+
     app.use(express.static("dist/web"));
-    app.use(session({ secret: "Wbh8n31btkkQBndpOEQ5" }));
+    app.use(session({ secret: process.env.SESSION_SECRET }));
     app.use("/api", apiRouter);
     app.use(defaultRouter);
 
