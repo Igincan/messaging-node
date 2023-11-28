@@ -1,1 +1,1 @@
-pg_dump.exe messaging > $(date --iso).sql
+pg_dump.exe -d messaging -U postgres > $(date --iso).sql
